@@ -2,3 +2,5 @@ github.com/go-redis/redis v6.15.9+incompatible h1:K0pv1D7EQUjfyoMql+r/jZqCLizCGK
 github.com/go-redis/redis v6.15.9+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/swethabhageerath/logging v1.0.9 h1:VQ9NHzJVfI8MDdxVouKNOKD9moo9KutgW7ksUiHeI7o=
+github.com/swethabhageerath/logging v1.0.9/go.mod h1:XlCx0FWCzGfkAerpnlFe2K3LVp3G8GyBqQLYeWNmJ/Y=
