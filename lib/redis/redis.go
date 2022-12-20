@@ -5,7 +5,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	er "github.com/swethabhageerath/redis/lib/errors"
+	"github.com/swethabhageerath/logging/lib/constants"
+	m "github.com/swethabhageerath/logging/lib/models"
+	w "github.com/swethabhageerath/logging/lib/writers"
+	E "github.com/swethabhageerath/redis/lib/errors"
 	"github.com/swethabhageerath/redis/lib/models"
 
 	"github.com/go-redis/redis"
@@ -25,7 +28,9 @@ func (r Redis) Set(key string, value string, expiration time.Duration, out chan 
 	s := r.client.Set(key, value, expiration)
 	err := s.Err()
 	if err != nil {
-		out <- errors.Wrap(err, er.ErrSetRedisCache.String())
+		er := errors.Wrap(err, E.ErrSetRedisCache.String())
+		r.log(er)
+		out <- er
 	}
 }
 
@@ -34,14 +39,18 @@ func (r Redis) Get(key string, out chan models.RedisGetResponse) {
 	result, err := s.Result()
 	if err != nil {
 		if err == redis.Nil {
+			er := errors.Wrap(err, fmt.Sprintf(E.ErrKeyNotExists.String(), key))
+			r.log(er)
 			out <- models.RedisGetResponse{
 				Data:  "",
-				Error: errors.Wrap(err, fmt.Sprintf(er.ErrKeyNotExists.String(), key)),
+				Error: er,
 			}
 		} else {
+			er := errors.Wrap(err, fmt.Sprintf(E.ErrRetrievingKey.String(), key))
+			r.log(er)
 			out <- models.RedisGetResponse{
 				Data:  "",
-				Error: errors.Wrap(err, fmt.Sprintf(er.ErrRetrievingKey.String(), key)),
+				Error: er,
 			}
 		}
 	}
@@ -55,12 +64,26 @@ func (r Redis) Remove(key string, expiration time.Duration, out chan error) {
 	e := r.client.Expire(key, expiration)
 	err := e.Err()
 	if err != nil {
+		var er error
 		if err == redis.Nil {
-			out <- errors.Wrap(err, fmt.Sprintf(er.ErrKeyNotExists.String(), key))
+			er = errors.Wrap(err, fmt.Sprintf(E.ErrKeyNotExists.String(), key))
+			r.log(er)
+			out <- er
 		} else {
-			out <- errors.Wrap(err, fmt.Sprintf(er.ErrRetrievingKey.String(), key))
+			er = errors.Wrap(err, fmt.Sprintf(E.ErrRetrievingKey.String(), key))
+			r.log(er)
+			out <- er
 		}
 	}
 
 	out <- nil
+}
+
+func (r Redis) log(err error) {
+	l := m.New(m.WithMandatoryFields("Redis", "bmoola", constants.ERROR), m.WithRequestId("abc123"), m.WithStackTrace(err))
+	_, e := l.Attach(w.FileWriter{})
+	if e != nil {
+		panic(e)
+	}
+	l.Notify()
 }
